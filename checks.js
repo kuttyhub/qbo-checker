@@ -137,7 +137,7 @@ export function runChecks({ txns, hasClr }) {
     const items = [];
     if (Math.abs(net) > 0.005) items.push({ date: periodEnd, account: 'Undeposited Funds', amount: net, name: '', why: net < 0 ? 'Credit balance: deposits recorded without the matching receipt, or receipts posted straight to the bank.' : 'Receipts not yet grouped into a deposit.' });
     for (const t of old) items.push({ ...t, why: `Receipt sitting in Undeposited Funds ${Math.round(days(periodEnd, t.date))} days before period end.` });
-    add('uf', 'Undeposited Funds not clearing', 'medium', items, 'ponytail: net-balance heuristic; a true open-item list needs the Deposit Detail report.');
+    add('uf', 'Undeposited Funds not clearing', 'medium', items, 'Net-balance heuristic; a true open-item list needs the Deposit Detail report.') // ponytail: net balance, not open items;
   }
 
   // 4. Likely duplicates: same account, same |amount|, same name, within 3 days.
@@ -170,7 +170,7 @@ export function runChecks({ txns, hasClr }) {
   add('xfer', 'Transfers categorised to a non-bank account', 'medium',
     txns.filter((t) => /^transfer$/i.test(t.type) && t.split && !BANKISH.test(t.split) && !/^-?split-?$/i.test(t.split))
       .map((t) => ({ ...t, why: `Transfer with split "${t.split}". Transfers should move between balance-sheet accounts, not P&L.` })),
-    'ponytail: account-name heuristic; the export has no account type.');
+    'Account-name heuristic; the export has no account type.') // ponytail: name match, export has no account types;
 
   // 7. Uncategorised / Ask My Accountant.
   add('uncat', 'Uncategorised or parked transactions', 'medium',

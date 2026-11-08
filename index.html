@@ -11,7 +11,8 @@
 <style>
 /* Hallmark · shape: app screen · genre: modern-minimal · theme: Cobalt (deal 3/3, seed browser-tool-bookkeepers-drop-a536·4a28296b·2026-11-08·r0) · redesign: full
  * nav: top bar, wordmark and one link · signature: the exceptions ledger, a count over a fifty-cell meter then seven ruled tables · states: empty, loading, error, full
- * axes: light/grotesk-sans/cool · posture: restrained · contrast: pass · v2.0.0 */
+ * axes: light/grotesk-sans/cool · posture: restrained · contrast: pass · v2.0.0
+ * finish-review: subagent · 8 findings · 8 resolved · gap: none */
 /* Hallmark · pre-emit critique: P3 H4 E4 S4 R4 V4 · weakest: P, a checker has no argument to make; every flagged row now states its reason in the bookkeeper's own terms instead */
 @import url("./tokens.css");
 @import url("./base.css");
@@ -20,7 +21,7 @@
 
 /* shell */
 .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); min-height: 56px; border-bottom: var(--rule-hair) solid var(--color-rule); }
-.wordmark { font: 500 var(--text-md)/1 var(--font-body); color: var(--color-ink); text-decoration: none; }
+.wordmark { font: 500 var(--text-md)/1 var(--font-display); letter-spacing: var(--tracking-display); color: var(--color-ink); text-decoration: none; white-space: nowrap; }
 .bar a.quiet { font-size: var(--text-sm); color: var(--color-ink-2); }
 .bar a.quiet:hover { color: var(--color-ink); text-decoration-color: var(--color-accent); }
 
@@ -33,6 +34,7 @@ main { padding-block: var(--space-xl) var(--space-2xl); display: grid; gap: var(
 /* intake */
 .intake { padding: var(--space-lg); display: grid; gap: var(--space-md); transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out); }
 .intake.over { background: var(--color-accent-wash); border-color: var(--color-accent); }
+.intake.has-result > p:not(.status) { display: none; }
 .intake h1 { font-size: var(--text-2xl); max-width: 24ch; }
 .intake p { color: var(--color-ink-2); max-width: 60ch; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
@@ -55,21 +57,24 @@ main { padding-block: var(--space-xl) var(--space-2xl); display: grid; gap: var(
 .status { min-height: 1lh; font-size: var(--text-sm); color: var(--color-muted); }
 
 /* summary: the count over a meter */
-.summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-lg); align-items: end; padding: var(--space-lg); }
+.summary { display: grid; gap: var(--space-md); padding: var(--space-lg); }
 .count { display: grid; gap: var(--space-2xs); }
+.summary .foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap; }
+.facts { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-lg); margin: 0; font-size: var(--text-sm); color: var(--color-ink-2); }
+.facts div { display: flex; gap: var(--space-2xs); } .facts dt { color: var(--color-muted); } .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
 .count b { font: 600 3.75rem/1 var(--font-display); letter-spacing: var(--tracking-display); font-variant-numeric: tabular-nums; color: var(--color-ink); }
 .count span { font-size: var(--text-sm); color: var(--color-ink-2); }
 .count .split { display: flex; gap: var(--space-md); flex-wrap: wrap; }
 .sev-high { color: var(--color-error); }
 .sev-medium { color: var(--color-ink-2); }
-.meter { font: 400 var(--text-md)/1 var(--font-outlier); letter-spacing: 0.08em; color: var(--color-rule-2); user-select: none; word-break: break-all; max-width: 25ch; }
-.meter i { font-style: normal; }
-.meter .m-high { color: var(--color-error); }
-.meter .m-med { color: var(--color-accent-2); }
-.summary .tools { display: grid; justify-items: end; gap: var(--space-xs); }
-@media (max-width: 40rem) { .summary { grid-template-columns: minmax(0, 1fr); } .summary .tools { justify-items: start; } }
+.meter { display: flex; gap: var(--space-3xs); width: 100%; }
+.meter i { flex: 1 1 0; height: var(--cell-h); background: var(--color-paper-3); }
+.meter .m-high { background: var(--color-error); }
+.meter .m-med { background: var(--color-accent-2); }
+.summary.is-empty .count span { color: var(--color-ink-2); }
 
 /* ledger */
+#out { display: grid; gap: var(--space-xl); }
 .ledger { display: grid; gap: var(--space-xl); }
 .check { display: grid; gap: var(--space-xs); }
 .check-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap; border-bottom: var(--rule-hair) solid var(--color-ink); padding-bottom: var(--space-xs); }
@@ -79,7 +84,7 @@ main { padding-block: var(--space-xl) var(--space-2xl); display: grid; gap: var(
 .found.is-none, .found.is-skipped { color: var(--color-muted); }
 .check .note { font-size: var(--text-sm); color: var(--color-muted); max-width: 72ch; }
 table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
-th { text-align: left; font-weight: 500; color: var(--color-muted); padding: var(--space-xs) var(--space-xs) var(--space-xs) 0; border-bottom: var(--rule-hair) solid var(--color-rule); white-space: nowrap; }
+th { text-align: left; font: 500 var(--text-sm)/1.3 var(--font-display); color: var(--color-muted); padding: var(--space-xs) var(--space-xs) var(--space-xs) 0; border-bottom: var(--rule-hair) solid var(--color-rule); white-space: nowrap; }
 td { padding: var(--space-xs) var(--space-xs) var(--space-3xs) 0; vertical-align: top; border-top: var(--rule-hair) solid var(--color-rule); }
 tr.why td { border-top: 0; padding-top: 0; padding-bottom: var(--space-xs); color: var(--color-muted); }
 td.mono, th.mono { font-family: var(--font-outlier); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -123,13 +128,13 @@ footer { border-top: var(--rule-hair) solid var(--color-rule); padding-block: va
 <body>
 <header class="container bar">
   <a class="wordmark" href="./" aria-label="QBO month-end checker, home">QBO month-end checker</a>
-  <a class="quiet" href="#checks">What the seven checks are</a>
+  <a class="quiet" href="#checks">The seven checks</a>
 </header>
 
 <main class="container">
   <section class="cut intake" id="drop" aria-labelledby="h-intake">
     <h1 id="h-intake">Month-end exceptions from one export</h1>
-    <p>Drop a QuickBooks Online <b>Transaction Detail by Account</b> export, Excel or CSV. Seven checks run in this tab; the file never leaves it.</p>
+    <p>Drop a QuickBooks Online <b>Transaction Detail by Account</b> export anywhere on this panel, Excel or CSV. Seven checks run on it.</p>
     <div class="actions">
       <input type="file" id="file" name="export" class="visually-hidden" accept=".xlsx,.xls,.csv">
       <label for="file" class="key key--primary">Choose export</label>
@@ -141,10 +146,8 @@ footer { border-top: var(--rule-hair) solid var(--color-rule); padding-block: va
 
   <section id="out" aria-live="polite" aria-label="Results">
     <div class="cut summary is-empty">
-      <div class="count">
-        <b>0</b>
-        <span>exceptions. Nothing checked yet. Choose an export, or run the sample company to see what a flagged month looks like.</span>
-      </div>
+      <div class="count"><span>Nothing checked yet. Choose an export, or run the sample company to see what a flagged month looks like.</span></div>
+      <div class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     </div>
   </section>
 
@@ -169,14 +172,14 @@ footer { border-top: var(--rule-hair) solid var(--color-rule); padding-block: va
 <script type="module">
 import { parseExport, runChecks, fmt, money } from './checks.js';
 const $ = (s) => document.querySelector(s);
-const out = $('#out'), status = $('#status');
+const out = $('#out'), status = $('#status'), drop = $('#drop');
 let lastText = '';
 
 function esc(s){return String(s).replace(/[&<>"]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function meter(high, med, total){
   const cells = 50, h = total ? Math.round(cells * high / total) : 0, m = total ? Math.round(cells * med / total) : 0;
   let s = '';
-  for (let i = 0; i < cells; i++) s += i < h ? '<i class="m-high">█</i>' : i < h + m ? '<i class="m-med">█</i>' : '<i>█</i>';
+  for (let i = 0; i < cells; i++) s += i < h ? '<i class="m-high"></i>' : i < h + m ? '<i class="m-med"></i>' : '<i></i>';
   return `<div class="meter" aria-hidden="true">${s}</div>`;
 }
 
@@ -191,11 +194,11 @@ function render(result, fileName){
   let html = `<div class="cut summary">
     <div class="count">
       <b>${total}</b>
-      <span>${total===1?'exception':'exceptions'} in ${count} transactions, ${fmt(periodStart)} to ${fmt(periodEnd)}</span>
-      <span class="split"><span class="sev-high">${high} high</span><span class="sev-medium">${med} medium</span></span>
+      <span>${total===1?'exception':'exceptions'} in ${count} transactions</span>
     </div>
-    <div class="tools">
-      ${meter(high, med, count)}
+    ${meter(high, med, count)}
+    <div class="foot">
+      <dl class="facts"><div><dt>Period</dt><dd>${fmt(periodStart)} to ${fmt(periodEnd)}</dd></div><div><dt class="sev-high">High</dt><dd class="sev-high">${high}</dd></div><div><dt>Medium</dt><dd>${med}</dd></div><div><dt>Flagged</dt><dd>${count?Math.round(100*total/count):0}% of rows</dd></div></dl>
       <button id="copy" class="key" type="button">Copy report as text</button>
     </div>
   </div>
@@ -218,8 +221,6 @@ function render(result, fileName){
         lines.push(`- ${fmt(it.date)} ${it.type||''} ${it.num||''} ${it.name||''} | ${it.account||''} | ${money(it.amount)}. ${it.why||''}`);
       }
       html += `</tbody></table>`;
-    } else if (f.severity!=='skipped') {
-      html += `<p class="none">Nothing flagged.</p>`;
     }
     html += `</section>`;
     lines.push('');
@@ -246,6 +247,7 @@ function handleRows(rows, name){
     const parsed = parseExport(rows);
     if (!parsed.txns.length) throw new Error('A header row was found but no transaction rows. Is this the Transaction Detail by Account report?');
     render(runChecks(parsed), name);
+    drop.classList.add('has-result');
     status.textContent = `Checked ${name} in this tab. Nothing was uploaded.`;
   }catch(e){ showError(e.message); }
 }
@@ -265,7 +267,6 @@ function readFile(file){
 }
 
 $('#file').addEventListener('change', (e)=> e.target.files[0] && readFile(e.target.files[0]));
-const drop = $('#drop');
 for (const ev of ['dragenter','dragover']) drop.addEventListener(ev,(e)=>{e.preventDefault();drop.classList.add('over');});
 for (const ev of ['dragleave','drop']) drop.addEventListener(ev,(e)=>{e.preventDefault();drop.classList.remove('over');});
 drop.addEventListener('drop',(e)=>{const f=e.dataTransfer.files[0]; if(f) readFile(f);});

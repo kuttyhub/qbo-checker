@@ -4,138 +4,263 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QBO Month-End Checker</title>
-<meta name="description" content="Drop a QuickBooks Online Transaction Detail by Account export. Seven month-end exception checks run in your browser. Nothing is uploaded.">
+<meta name="description" content="Drop a QuickBooks Online Transaction Detail by Account export and see seven month-end exception checks, run in your browser with nothing uploaded.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f7f7f5;--fg:#1c1c1a;--muted:#6b6b66;--card:#fff;--line:#e3e3df;--high:#b42318;--med:#b54708;--ok:#027a48;--skip:#6b6b66;--accent:#1d4ed8}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#121211;--fg:#ecece8;--muted:#9a9a93;--card:#1b1b19;--line:#2c2c29;--high:#f97066;--med:#f79009;--ok:#32d583;--accent:#7aa2ff}}
-:root[data-theme=dark]{--bg:#121211;--fg:#ecece8;--muted:#9a9a93;--card:#1b1b19;--line:#2c2c29;--high:#f97066;--med:#f79009;--ok:#32d583;--accent:#7aa2ff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
-main{max-width:860px;margin:0 auto;padding:32px 16px 64px}
-h1{font-size:1.6rem;margin:0 0 4px}p.lead{color:var(--muted);margin:0 0 24px}
-.drop{border:2px dashed var(--line);border-radius:12px;padding:32px 16px;text-align:center;background:var(--card);cursor:pointer}
-.drop.over{border-color:var(--accent)}
-.drop input{display:none}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0 24px}
-button,.btn{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.note{font-size:.9rem;color:var(--muted)}
-.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
-.tile b{display:block;font-size:1.4rem}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
-.card h2{font-size:1.05rem;margin:0 0 4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.badge{font-size:.75rem;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
-.high{color:var(--high)}.medium{color:var(--med)}.ok{color:var(--ok)}.skipped{color:var(--skip)}
-table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:8px}
-th,td{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}
-td.amt{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.why{color:var(--muted);font-size:.85rem}
-details summary{cursor:pointer;color:var(--muted);font-size:.9rem}
-pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:.85rem}
-.err{color:var(--high)}
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Cobalt (deal 3/3, seed browser-tool-bookkeepers-drop-a536·4a28296b·2026-11-08·r0) · redesign: full
+ * nav: top bar, wordmark and one link · signature: the exceptions ledger, a count over a fifty-cell meter then seven ruled tables · states: empty, loading, error, full
+ * axes: light/grotesk-sans/cool · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P3 H4 E4 S4 R4 V4 · weakest: P, a checker has no argument to make; every flagged row now states its reason in the bookkeeper's own terms instead */
+@import url("./tokens.css");
+@import url("./base.css");
+
+:root { --container: 1120px; --gutter: 24px; --key-h: 40px; }
+
+/* shell */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); min-height: 56px; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.wordmark { font: 500 var(--text-md)/1 var(--font-body); color: var(--color-ink); text-decoration: none; }
+.bar a.quiet { font-size: var(--text-sm); color: var(--color-ink-2); }
+.bar a.quiet:hover { color: var(--color-ink); text-decoration-color: var(--color-accent); }
+
+main { padding-block: var(--space-xl) var(--space-2xl); display: grid; gap: var(--space-xl); }
+
+/* cut panels (Cobalt) */
+.cut { border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper); box-shadow: var(--shadow-card); }
+@supports (corner-shape: bevel) { .cut { border-radius: var(--cut-l) 4px var(--cut-l) 4px; corner-shape: bevel round bevel round; } }
+
+/* intake */
+.intake { padding: var(--space-lg); display: grid; gap: var(--space-md); transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out); }
+.intake.over { background: var(--color-accent-wash); border-color: var(--color-accent); }
+.intake h1 { font-size: var(--text-2xl); max-width: 24ch; }
+.intake p { color: var(--color-ink-2); max-width: 60ch; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
+.help { min-height: 1lh; font-size: var(--text-sm); color: var(--color-muted); }
+.help b { font-weight: 500; color: var(--color-ink-2); }
+
+/* keycaps */
+.key { position: relative; display: inline-flex; align-items: center; gap: var(--space-xs); min-height: var(--key-h); padding: 0 var(--space-md); border: var(--rule-hair) solid var(--color-rule-2); border-radius: var(--radius-input); background: var(--color-key-face); color: var(--color-ink); font: 500 var(--text-sm)/1 var(--font-body); white-space: nowrap; text-decoration: none; cursor: pointer; box-shadow: var(--shadow-key); transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out); }
+.key::before { content: ""; position: absolute; inset: -2px; }
+@media (hover: hover) { .key:hover { transform: translateY(-1px); } }
+.key:active { transform: translateY(3px); box-shadow: var(--shadow-key-press); }
+.key:focus-visible, #file:focus-visible + .key { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.key:disabled, .key[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; transform: none; }
+.key[aria-busy="true"] { cursor: progress; }
+.key--primary { background: var(--color-accent); border-color: var(--color-accent-edge); color: var(--color-accent-ink); box-shadow: var(--shadow-key-accent); }
+@media (hover: hover) { .key--primary:hover { background: var(--color-accent-deep); } }
+@media (prefers-reduced-motion: reduce) { .key { transition: background-color var(--dur-micro) linear; } .key:hover, .key:active { transform: none; } }
+
+/* status line */
+.status { min-height: 1lh; font-size: var(--text-sm); color: var(--color-muted); }
+
+/* summary: the count over a meter */
+.summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-lg); align-items: end; padding: var(--space-lg); }
+.count { display: grid; gap: var(--space-2xs); }
+.count b { font: 600 3.75rem/1 var(--font-display); letter-spacing: var(--tracking-display); font-variant-numeric: tabular-nums; color: var(--color-ink); }
+.count span { font-size: var(--text-sm); color: var(--color-ink-2); }
+.count .split { display: flex; gap: var(--space-md); flex-wrap: wrap; }
+.sev-high { color: var(--color-error); }
+.sev-medium { color: var(--color-ink-2); }
+.meter { font: 400 var(--text-md)/1 var(--font-outlier); letter-spacing: 0.08em; color: var(--color-rule-2); user-select: none; word-break: break-all; max-width: 25ch; }
+.meter i { font-style: normal; }
+.meter .m-high { color: var(--color-error); }
+.meter .m-med { color: var(--color-accent-2); }
+.summary .tools { display: grid; justify-items: end; gap: var(--space-xs); }
+@media (max-width: 40rem) { .summary { grid-template-columns: minmax(0, 1fr); } .summary .tools { justify-items: start; } }
+
+/* ledger */
+.ledger { display: grid; gap: var(--space-xl); }
+.check { display: grid; gap: var(--space-xs); }
+.check-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap; border-bottom: var(--rule-hair) solid var(--color-ink); padding-bottom: var(--space-xs); }
+.check h2 { font-size: var(--text-lg); max-width: none; }
+.found { font-size: var(--text-sm); font-variant-numeric: tabular-nums; color: var(--color-ink-2); white-space: nowrap; }
+.found.is-high { color: var(--color-error); }
+.found.is-none, .found.is-skipped { color: var(--color-muted); }
+.check .note { font-size: var(--text-sm); color: var(--color-muted); max-width: 72ch; }
+table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+th { text-align: left; font-weight: 500; color: var(--color-muted); padding: var(--space-xs) var(--space-xs) var(--space-xs) 0; border-bottom: var(--rule-hair) solid var(--color-rule); white-space: nowrap; }
+td { padding: var(--space-xs) var(--space-xs) var(--space-3xs) 0; vertical-align: top; border-top: var(--rule-hair) solid var(--color-rule); }
+tr.why td { border-top: 0; padding-top: 0; padding-bottom: var(--space-xs); color: var(--color-muted); }
+td.mono, th.mono { font-family: var(--font-outlier); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.amt, th.amt { text-align: right; padding-right: 0; }
+td.amt { font-family: var(--font-outlier); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rownum { color: var(--color-muted); }
+.none { font-size: var(--text-sm); color: var(--color-muted); padding-block: var(--space-xs); }
+@media (max-width: 40rem) {
+  thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-sm); }
+  td { border-top: 0; padding: 0 0 var(--space-3xs); grid-column: 1; }
+  td:first-child { border-top: var(--rule-hair) solid var(--color-rule); padding-top: var(--space-xs); grid-column: 1 / -1; }
+  td.amt { grid-column: 2; grid-row: 2; }
+  td:empty { display: none; }
+  td[data-h]::before { content: attr(data-h) " "; color: var(--color-muted); }
+  td.mono[data-h="Date"]::before, td.amt::before, td[data-h="Type"]::before { content: none; }
+  tr.why { grid-template-columns: minmax(0, 1fr); }
+  tr.why td { grid-column: 1 / -1; }
+}
+
+/* states */
+.skeleton { display: grid; gap: var(--space-xs); padding: var(--space-lg); }
+.skeleton i { display: block; height: 14px; border-radius: 3px; background: var(--color-paper-3); }
+.skeleton i:nth-child(1) { width: 38%; height: 44px; margin-bottom: var(--space-sm); }
+.skeleton i:nth-child(odd) { width: 92%; } .skeleton i:nth-child(even) { width: 70%; }
+.error { padding: var(--space-lg); border-color: var(--color-error); display: grid; gap: var(--space-2xs); }
+.error b { font-weight: 500; color: var(--color-error); }
+.error p { color: var(--color-ink-2); }
+
+/* the seven checks, kept as content */
+.checks { display: grid; gap: var(--space-xs); }
+.checks h2 { font-size: var(--text-lg); margin-bottom: var(--space-xs); }
+.checks ol { margin: 0; padding: 0; list-style: none; counter-reset: c; }
+.checks li { counter-increment: c; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); padding-block: var(--space-xs); border-top: var(--rule-hair) solid var(--color-rule); font-size: var(--text-sm); color: var(--color-ink-2); }
+.checks li::before { content: counter(c, decimal-leading-zero); font-family: var(--font-outlier); color: var(--color-muted); }
+.checks p { font-size: var(--text-sm); color: var(--color-muted); margin-top: var(--space-xs); }
+
+footer { border-top: var(--rule-hair) solid var(--color-rule); padding-block: var(--space-lg); font-size: var(--text-sm); color: var(--color-muted); }
 </style>
 </head>
 <body>
-<main>
-<h1>QBO month-end checker</h1>
-<p class="lead">Drop a QuickBooks Online <b>Transaction Detail by Account</b> export (Excel or CSV). Seven exception checks run here in your browser. Nothing is uploaded anywhere.</p>
+<header class="container bar">
+  <a class="wordmark" href="./" aria-label="QBO month-end checker, home">QBO month-end checker</a>
+  <a class="quiet" href="#checks">What the seven checks are</a>
+</header>
 
-<label class="drop" id="drop">
-  <input type="file" id="file" accept=".xlsx,.xls,.csv">
-  <div><b>Drop the export here</b> or click to choose</div>
-  <div class="note">Report → Transaction Detail by Account → All dates for the month → Export to Excel. Add the "Clr" column to enable the stale-items check.</div>
-</label>
-<div class="row">
-  <button id="sample" class="primary">Try the sample file</button>
-  <button id="copy" hidden>Copy report as text</button>
-  <span class="note" id="status"></span>
-</div>
+<main class="container">
+  <section class="cut intake" id="drop" aria-labelledby="h-intake">
+    <h1 id="h-intake">Month-end exceptions from one export</h1>
+    <p>Drop a QuickBooks Online <b>Transaction Detail by Account</b> export, Excel or CSV. Seven checks run in this tab; the file never leaves it.</p>
+    <div class="actions">
+      <input type="file" id="file" name="export" class="visually-hidden" accept=".xlsx,.xls,.csv">
+      <label for="file" class="key key--primary">Choose export</label>
+      <button id="sample" class="key" type="button">Run the sample company</button>
+    </div>
+    <p class="help">Reports, then Transaction Detail by Account, the month, <b>Export to Excel</b>. Add the <b>Clr</b> column to enable the stale-items check.</p>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
 
-<div id="out"></div>
+  <section id="out" aria-live="polite" aria-label="Results">
+    <div class="cut summary is-empty">
+      <div class="count">
+        <b>0</b>
+        <span>exceptions. Nothing checked yet. Choose an export, or run the sample company to see what a flagged month looks like.</span>
+      </div>
+    </div>
+  </section>
 
-<details style="margin-top:32px"><summary>What the seven checks are</summary>
-<ol class="note">
-<li>Opening Balance Equity has activity this period.</li>
-<li>Negative A/R by customer or A/P by vendor (within the export).</li>
-<li>Undeposited Funds not clearing: credit balance or receipts older than 14 days.</li>
-<li>Possible duplicates: same bank account, amount, name, within 3 days.</li>
-<li>Uncleared bank items older than 60 days (needs the Clr column).</li>
-<li>Transfers whose other side is not a bank, card or cash account.</li>
-<li>Uncategorised, Ask My Accountant, or suspense postings.</li>
-</ol>
-<p class="note">Heuristics on an export, not a replacement for the reconciliation screen. Account types are inferred from names.</p>
-</details>
+  <section class="checks" id="checks" aria-labelledby="h-checks">
+    <h2 id="h-checks">What the seven checks are</h2>
+    <ol>
+      <li>Opening Balance Equity has activity this period.</li>
+      <li>Negative A/R by customer or A/P by vendor, within the export.</li>
+      <li>Undeposited Funds not clearing: a credit balance, or receipts older than 14 days.</li>
+      <li>Possible duplicates: same bank account, amount and name within 3 days.</li>
+      <li>Uncleared bank items older than 60 days. Needs the Clr column.</li>
+      <li>Transfers whose other side is not a bank, card or cash account.</li>
+      <li>Uncategorised, Ask My Accountant, or suspense postings.</li>
+    </ol>
+    <p>Heuristics on an export, not a replacement for the reconciliation screen. Account types are inferred from names.</p>
+  </section>
 </main>
+
+<footer class="container">Runs entirely in your browser. No upload, no account, nothing stored.</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
 import { parseExport, runChecks, fmt, money } from './checks.js';
 const $ = (s) => document.querySelector(s);
-const out = $('#out'), status = $('#status'), copyBtn = $('#copy');
+const out = $('#out'), status = $('#status');
 let lastText = '';
 
 function esc(s){return String(s).replace(/[&<>"]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function meter(high, med, total){
+  const cells = 50, h = total ? Math.round(cells * high / total) : 0, m = total ? Math.round(cells * med / total) : 0;
+  let s = '';
+  for (let i = 0; i < cells; i++) s += i < h ? '<i class="m-high">█</i>' : i < h + m ? '<i class="m-med">█</i>' : '<i>█</i>';
+  return `<div class="meter" aria-hidden="true">${s}</div>`;
+}
 
 function render(result, fileName){
   const { findings, periodStart, periodEnd, count } = result;
   const high = findings.filter(f=>f.severity==='high').reduce((s,f)=>s+f.items.length,0);
   const med = findings.filter(f=>f.severity==='medium').reduce((s,f)=>s+f.items.length,0);
-  const ran = findings.filter(f=>f.severity!=='skipped').length;
-  let html = `<div class="summary">
-    <div class="tile"><span class="note">Transactions</span><b>${count}</b></div>
-    <div class="tile"><span class="note">Period</span><b style="font-size:1rem">${fmt(periodStart)} → ${fmt(periodEnd)}</b></div>
-    <div class="tile"><span class="note">High</span><b class="high">${high}</b></div>
-    <div class="tile"><span class="note">Medium</span><b class="medium">${med}</b></div>
-  </div>`;
-  const lines = [`QBO month-end exceptions — ${fileName}`, `Period ${fmt(periodStart)} to ${fmt(periodEnd)}, ${count} transactions, ${high} high, ${med} medium.`, ''];
+  const total = high + med;
   const order = ['obe','negar','negap','dup','uf','stale','xfer','uncat'];
   const sorted = [...findings].sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+
+  let html = `<div class="cut summary">
+    <div class="count">
+      <b>${total}</b>
+      <span>${total===1?'exception':'exceptions'} in ${count} transactions, ${fmt(periodStart)} to ${fmt(periodEnd)}</span>
+      <span class="split"><span class="sev-high">${high} high</span><span class="sev-medium">${med} medium</span></span>
+    </div>
+    <div class="tools">
+      ${meter(high, med, count)}
+      <button id="copy" class="key" type="button">Copy report as text</button>
+    </div>
+  </div>
+  <div class="ledger">`;
+  const lines = [`QBO month-end exceptions, ${fileName}`, `Period ${fmt(periodStart)} to ${fmt(periodEnd)}, ${count} transactions, ${high} high, ${med} medium.`, ''];
+
   for (const f of sorted){
     const n = f.items.length;
-    const cls = f.severity;
-    html += `<section class="card"><h2>${esc(f.title)} <span class="badge ${cls}">${f.severity==='skipped'?'skipped':n+' found'}</span></h2>`;
-    if (f.note) html += `<div class="note">${esc(f.note)}</div>`;
-    lines.push(`## ${f.title} — ${f.severity==='skipped'?'skipped':n+' found'}`);
+    const state = f.severity==='skipped' ? 'skipped' : n ? (f.severity==='high' ? 'high' : 'medium') : 'none';
+    const label = f.severity==='skipped' ? 'skipped' : n ? `${n} found` : 'none found';
+    html += `<section class="check"><div class="check-head"><h2>${esc(f.title)}</h2><span class="found is-${state}">${label}</span></div>`;
+    if (f.note) html += `<p class="note">${esc(f.note)}</p>`;
+    lines.push(`## ${f.title}, ${label}`);
     if (f.note) lines.push(f.note);
     if (n){
-      html += `<table><thead><tr><th>Date</th><th>Type</th><th>Num</th><th>Name</th><th>Account</th><th>Amount</th></tr></thead><tbody>`;
+      html += `<table><thead><tr><th class="mono">Date</th><th>Type</th><th class="mono">Num</th><th>Name</th><th>Account</th><th class="amt">Amount</th></tr></thead><tbody>`;
       for (const it of f.items){
-        html += `<tr><td>${fmt(it.date)}</td><td>${esc(it.type||'')}</td><td>${esc(it.num||'')}</td><td>${esc(it.name||'')}</td><td>${esc(it.account||'')}</td><td class="amt">${money(it.amount)}</td></tr>`;
-        html += `<tr><td colspan="6" class="why">${esc(it.why||'')}${it.row?` (row ${it.row})`:''}</td></tr>`;
-        lines.push(`- ${fmt(it.date)} ${it.type||''} ${it.num||''} ${it.name||''} | ${it.account||''} | ${money(it.amount)} — ${it.why||''}`);
+        html += `<tr><td class="mono" data-h="Date">${fmt(it.date)}</td><td data-h="Type">${esc(it.type||'')}</td><td class="mono" data-h="Num">${esc(it.num||'')}</td><td data-h="Name">${esc(it.name||'')}</td><td data-h="Account">${esc(it.account||'')}</td><td class="amt">${money(it.amount)}</td></tr>`;
+        html += `<tr class="why"><td colspan="6">${esc(it.why||'')}${it.row?` <span class="rownum">row ${it.row}</span>`:''}</td></tr>`;
+        lines.push(`- ${fmt(it.date)} ${it.type||''} ${it.num||''} ${it.name||''} | ${it.account||''} | ${money(it.amount)}. ${it.why||''}`);
       }
       html += `</tbody></table>`;
+    } else if (f.severity!=='skipped') {
+      html += `<p class="none">Nothing flagged.</p>`;
     }
     html += `</section>`;
     lines.push('');
   }
-  if (!sorted.some(f=>f.items.length)) html += `<div class="card ok">No exceptions found by these checks.</div>`;
+  html += `</div>`;
   out.innerHTML = html;
   lastText = lines.join('\n');
-  copyBtn.hidden = false;
+  $('#copy').addEventListener('click', async ()=>{
+    try{ await navigator.clipboard.writeText(lastText); status.textContent='Report copied.'; }catch{ status.textContent='Copy failed in this browser. Select the ledger and copy it by hand.'; }
+  });
+}
+
+function showLoading(name){
+  status.textContent = `Reading ${name}`;
+  out.innerHTML = `<div class="cut skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>`;
+}
+function showError(msg){
+  out.innerHTML = `<div class="cut error"><b>${esc(msg)}</b><p>Export the Transaction Detail by Account report to Excel or CSV from QuickBooks Online and drop it again.</p></div>`;
+  status.textContent = '';
 }
 
 function handleRows(rows, name){
   try{
     const parsed = parseExport(rows);
-    if (!parsed.txns.length) throw new Error('Header found but no transaction rows parsed. Is this the Transaction Detail by Account report?');
+    if (!parsed.txns.length) throw new Error('A header row was found but no transaction rows. Is this the Transaction Detail by Account report?');
     render(runChecks(parsed), name);
-    status.textContent = `Checked ${name} locally.`;
-  }catch(e){
-    out.innerHTML = `<div class="card err">${esc(e.message)}</div>`;
-    status.textContent = '';
-  }
+    status.textContent = `Checked ${name} in this tab. Nothing was uploaded.`;
+  }catch(e){ showError(e.message); }
 }
 
 function readFile(file){
-  status.textContent = 'Reading…';
+  showLoading(file.name);
   const reader = new FileReader();
   reader.onload = (ev)=>{
-    const wb = XLSX.read(ev.target.result, { type:'array', cellDates:false });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:'' });
-    handleRows(rows, file.name);
+    try{
+      const wb = XLSX.read(ev.target.result, { type:'array', cellDates:false });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      handleRows(XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:'' }), file.name);
+    }catch(e){ showError('This file could not be read as a spreadsheet.'); }
   };
+  reader.onerror = ()=> showError('This file could not be read.');
   reader.readAsArrayBuffer(file);
 }
 
@@ -146,15 +271,12 @@ for (const ev of ['dragleave','drop']) drop.addEventListener(ev,(e)=>{e.preventD
 drop.addEventListener('drop',(e)=>{const f=e.dataTransfer.files[0]; if(f) readFile(f);});
 
 $('#sample').addEventListener('click', async ()=>{
-  status.textContent = 'Loading sample…';
-  const text = await (await fetch('./sample.csv')).text();
-  const wb = XLSX.read(text, { type:'string', cellDates:false });
-  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header:1, raw:true, defval:'' });
-  handleRows(rows, 'sample.csv (fictional company)');
-});
-
-copyBtn.addEventListener('click', async ()=>{
-  try{ await navigator.clipboard.writeText(lastText); status.textContent='Copied.'; }catch{ status.textContent='Copy failed; select the text manually.'; }
+  showLoading('the sample company');
+  try{
+    const text = await (await fetch('./sample.csv')).text();
+    const wb = XLSX.read(text, { type:'string', cellDates:false });
+    handleRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header:1, raw:true, defval:'' }), 'sample.csv (fictional company)');
+  }catch(e){ showError('The sample file could not be loaded.'); }
 });
 </script>
 </body>

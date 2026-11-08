@@ -131,7 +131,7 @@ function readFile(file){
   status.textContent = 'Reading…';
   const reader = new FileReader();
   reader.onload = (ev)=>{
-    const wb = XLSX.read(ev.target.result, { type:'array', cellDates:true });
+    const wb = XLSX.read(ev.target.result, { type:'array', cellDates:false });
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:'' });
     handleRows(rows, file.name);
@@ -148,7 +148,7 @@ drop.addEventListener('drop',(e)=>{const f=e.dataTransfer.files[0]; if(f) readFi
 $('#sample').addEventListener('click', async ()=>{
   status.textContent = 'Loading sample…';
   const text = await (await fetch('./sample.csv')).text();
-  const wb = XLSX.read(text, { type:'string', cellDates:true });
+  const wb = XLSX.read(text, { type:'string', cellDates:false });
   const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header:1, raw:true, defval:'' });
   handleRows(rows, 'sample.csv (fictional company)');
 });

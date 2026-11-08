@@ -18,8 +18,11 @@ const COL = {
 const isBlank = (v) => v === undefined || v === null || String(v).trim() === '';
 
 export function toDate(v) {
-  if (v instanceof Date) return isNaN(v) ? null : v;
-  if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400000)); // excel serial
+  if (typeof v === 'number') { // excel serial → local calendar date, no TZ shift
+    const u = new Date(Math.round((v - 25569) * 86400000));
+    return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate());
+  }
+  if (v instanceof Date) return isNaN(v) ? null : new Date(v.getFullYear(), v.getMonth(), v.getDate());
   const s = String(v).trim();
   let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/); // MM/DD/YYYY (QBO US)
   if (m) return new Date(+m[3] < 100 ? 2000 + +m[3] : +m[3], +m[1] - 1, +m[2]);

@@ -1,0 +1,48 @@
+Craig's Lawn & Design (fictional sample)
+Transaction Detail by Account
+October 2026
+,,,,,,,,,
+,Date,Transaction Type,Num,Name,Memo/Description,Clr,Split,Amount,Balance
+Checking,,,,,,,,,
+,10/01/2026,Deposit,,Amy's Bird Sanctuary,Deposit,R,Undeposited Funds,1200.00,1200.00
+,10/02/2026,Expense,,Hicks Hardware,Mulch and edging,R,Job Materials,-315.40,884.60
+,10/03/2026,Expense,,Hicks Hardware,Mulch and edging,,Job Materials,-315.40,569.20
+,10/05/2026,Check,1041,Robertson & Associates,Monthly bookkeeping,R,Legal & Professional Fees,-250.00,319.20
+,10/06/2026,Transfer,,,Transfer to savings,R,Savings,-500.00,-180.80
+,10/07/2026,Transfer,,,Owner cash,,Office Expenses,-120.00,-300.80
+,10/09/2026,Expense,,Squeaky Kleen Car Wash,Fleet wash,R,Automobile,-19.99,-320.79
+,10/10/2026,Deposit,,Cool Cars,Deposit,R,Undeposited Funds,2250.00,1929.21
+,10/14/2026,Expense,,Chin's Gas and Oil,Fuel,R,Automobile,-63.15,1866.06
+,10/15/2026,Expense,,Unknown vendor,Card charge 4471,R,Uncategorized Expense,-89.00,1777.06
+,08/20/2026,Check,1035,Books by Bessie,Stale check from August,,Office Expenses,-55.00,1722.06
+,10/28/2026,Expense,,Norton Lumber,Fence posts,R,Job Materials,-410.00,1312.06
+,10/30/2026,Expense,,Ask My Accountant,Unknown ACH,R,Ask My Accountant,-200.00,1112.06
+Total for Checking,,,,,,,,1112.06,
+Checking,,,,,,,,,
+,08/12/2026,Check,1022,Lee Advertising,Flyers (never cleared),,Advertising,-140.00,
+Total for Checking,,,,,,,,-140.00,
+Savings,,,,,,,,,
+,10/06/2026,Transfer,,,Transfer from checking,R,Checking,500.00,500.00
+Total for Savings,,,,,,,,500.00,
+Undeposited Funds,,,,,,,,,
+,09/12/2026,Payment,,Dukes Basketball Camp,Payment received,,Accounts Receivable,650.00,650.00
+,10/01/2026,Deposit,,Amy's Bird Sanctuary,Deposit,,Checking,-1200.00,-550.00
+,10/10/2026,Deposit,,Cool Cars,Deposit,,Checking,-2250.00,-2800.00
+,10/10/2026,Payment,,Cool Cars,Payment received,,Accounts Receivable,2250.00,-550.00
+Total for Undeposited Funds,,,,,,,,-550.00,
+Accounts Receivable (A/R),,,,,,,,,
+,10/03/2026,Invoice,1007,Amy's Bird Sanctuary,Landscaping,,Landscaping Services,1200.00,1200.00
+,10/01/2026,Payment,,Amy's Bird Sanctuary,Payment received,,Undeposited Funds,-1200.00,0.00
+,10/08/2026,Invoice,1008,Cool Cars,Design work,,Design Income,2250.00,2250.00
+,10/10/2026,Payment,,Cool Cars,Payment received,,Undeposited Funds,-2250.00,0.00
+,10/12/2026,Payment,,Freeman Sporting Goods,Payment received,,Undeposited Funds,-400.00,-400.00
+Total for Accounts Receivable (A/R),,,,,,,,-400.00,
+Accounts Payable (A/P),,,,,,,,,
+,10/04/2026,Bill,,Norton Lumber,Fence posts,,Job Materials,-410.00,-410.00
+,10/28/2026,Bill Payment (Check),1042,Norton Lumber,Paid,,Checking,410.00,0.00
+,10/29/2026,Bill Payment (Check),1043,Norton Lumber,Paid again,,Checking,410.00,410.00
+Total for Accounts Payable (A/P),,,,,,,,410.00,
+Opening Balance Equity,,,,,,,,,
+,10/18/2026,Journal Entry,JE-9,,Connected credit card mid-month,,Visa Card,-842.17,-842.17
+Total for Opening Balance Equity,,,,,,,,-842.17,
+TOTAL,,,,,,,,,

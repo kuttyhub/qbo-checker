@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QBO Month-End Checker</title>
+<meta name="description" content="Drop a QuickBooks Online Transaction Detail by Account export. Seven month-end exception checks run in your browser. Nothing is uploaded.">
+<style>
+:root{--bg:#f7f7f5;--fg:#1c1c1a;--muted:#6b6b66;--card:#fff;--line:#e3e3df;--high:#b42318;--med:#b54708;--ok:#027a48;--skip:#6b6b66;--accent:#1d4ed8}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#121211;--fg:#ecece8;--muted:#9a9a93;--card:#1b1b19;--line:#2c2c29;--high:#f97066;--med:#f79009;--ok:#32d583;--accent:#7aa2ff}}
+:root[data-theme=dark]{--bg:#121211;--fg:#ecece8;--muted:#9a9a93;--card:#1b1b19;--line:#2c2c29;--high:#f97066;--med:#f79009;--ok:#32d583;--accent:#7aa2ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:860px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:1.6rem;margin:0 0 4px}p.lead{color:var(--muted);margin:0 0 24px}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:32px 16px;text-align:center;background:var(--card);cursor:pointer}
+.drop.over{border-color:var(--accent)}
+.drop input{display:none}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0 24px}
+button,.btn{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.note{font-size:.9rem;color:var(--muted)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.tile b{display:block;font-size:1.4rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.card h2{font-size:1.05rem;margin:0 0 4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{font-size:.75rem;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.high{color:var(--high)}.medium{color:var(--med)}.ok{color:var(--ok)}.skipped{color:var(--skip)}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:8px}
+th,td{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}
+td.amt{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.why{color:var(--muted);font-size:.85rem}
+details summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:.85rem}
+.err{color:var(--high)}
+</style>
+</head>
+<body>
+<main>
+<h1>QBO month-end checker</h1>
+<p class="lead">Drop a QuickBooks Online <b>Transaction Detail by Account</b> export (Excel or CSV). Seven exception checks run here in your browser. Nothing is uploaded anywhere.</p>
+
+<label class="drop" id="drop">
+  <input type="file" id="file" accept=".xlsx,.xls,.csv">
+  <div><b>Drop the export here</b> or click to choose</div>
+  <div class="note">Report → Transaction Detail by Account → All dates for the month → Export to Excel. Add the "Clr" column to enable the stale-items check.</div>
+</label>
+<div class="row">
+  <button id="sample" class="primary">Try the sample file</button>
+  <button id="copy" hidden>Copy report as text</button>
+  <span class="note" id="status"></span>
+</div>
+
+<div id="out"></div>
+
+<details style="margin-top:32px"><summary>What the seven checks are</summary>
+<ol class="note">
+<li>Opening Balance Equity has activity this period.</li>
+<li>Negative A/R by customer or A/P by vendor (within the export).</li>
+<li>Undeposited Funds not clearing: credit balance or receipts older than 14 days.</li>
+<li>Possible duplicates: same bank account, amount, name, within 3 days.</li>
+<li>Uncleared bank items older than 60 days (needs the Clr column).</li>
+<li>Transfers whose other side is not a bank, card or cash account.</li>
+<li>Uncategorised, Ask My Accountant, or suspense postings.</li>
+</ol>
+<p class="note">Heuristics on an export, not a replacement for the reconciliation screen. Account types are inferred from names.</p>
+</details>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import { parseExport, runChecks, fmt, money } from './checks.js';
+const $ = (s) => document.querySelector(s);
+const out = $('#out'), status = $('#status'), copyBtn = $('#copy');
+let lastText = '';
+
+function esc(s){return String(s).replace(/[&<>"]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function render(result, fileName){
+  const { findings, periodStart, periodEnd, count } = result;
+  const high = findings.filter(f=>f.severity==='high').reduce((s,f)=>s+f.items.length,0);
+  const med = findings.filter(f=>f.severity==='medium').reduce((s,f)=>s+f.items.length,0);
+  const ran = findings.filter(f=>f.severity!=='skipped').length;
+  let html = `<div class="summary">
+    <div class="tile"><span class="note">Transactions</span><b>${count}</b></div>
+    <div class="tile"><span class="note">Period</span><b style="font-size:1rem">${fmt(periodStart)} → ${fmt(periodEnd)}</b></div>
+    <div class="tile"><span class="note">High</span><b class="high">${high}</b></div>
+    <div class="tile"><span class="note">Medium</span><b class="medium">${med}</b></div>
+  </div>`;
+  const lines = [`QBO month-end exceptions — ${fileName}`, `Period ${fmt(periodStart)} to ${fmt(periodEnd)}, ${count} transactions, ${high} high, ${med} medium.`, ''];
+  const order = ['obe','negar','negap','dup','uf','stale','xfer','uncat'];
+  const sorted = [...findings].sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+  for (const f of sorted){
+    const n = f.items.length;
+    const cls = f.severity;
+    html += `<section class="card"><h2>${esc(f.title)} <span class="badge ${cls}">${f.severity==='skipped'?'skipped':n+' found'}</span></h2>`;
+    if (f.note) html += `<div class="note">${esc(f.note)}</div>`;
+    lines.push(`## ${f.title} — ${f.severity==='skipped'?'skipped':n+' found'}`);
+    if (f.note) lines.push(f.note);
+    if (n){
+      html += `<table><thead><tr><th>Date</th><th>Type</th><th>Num</th><th>Name</th><th>Account</th><th>Amount</th></tr></thead><tbody>`;
+      for (const it of f.items){
+        html += `<tr><td>${fmt(it.date)}</td><td>${esc(it.type||'')}</td><td>${esc(it.num||'')}</td><td>${esc(it.name||'')}</td><td>${esc(it.account||'')}</td><td class="amt">${money(it.amount)}</td></tr>`;
+        html += `<tr><td colspan="6" class="why">${esc(it.why||'')}${it.row?` (row ${it.row})`:''}</td></tr>`;
+        lines.push(`- ${fmt(it.date)} ${it.type||''} ${it.num||''} ${it.name||''} | ${it.account||''} | ${money(it.amount)} — ${it.why||''}`);
+      }
+      html += `</tbody></table>`;
+    }
+    html += `</section>`;
+    lines.push('');
+  }
+  if (!sorted.some(f=>f.items.length)) html += `<div class="card ok">No exceptions found by these checks.</div>`;
+  out.innerHTML = html;
+  lastText = lines.join('\n');
+  copyBtn.hidden = false;
+}
+
+function handleRows(rows, name){
+  try{
+    const parsed = parseExport(rows);
+    if (!parsed.txns.length) throw new Error('Header found but no transaction rows parsed. Is this the Transaction Detail by Account report?');
+    render(runChecks(parsed), name);
+    status.textContent = `Checked ${name} locally.`;
+  }catch(e){
+    out.innerHTML = `<div class="card err">${esc(e.message)}</div>`;
+    status.textContent = '';
+  }
+}
+
+function readFile(file){
+  status.textContent = 'Reading…';
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const wb = XLSX.read(ev.target.result, { type:'array', cellDates:true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:'' });
+    handleRows(rows, file.name);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+$('#file').addEventListener('change', (e)=> e.target.files[0] && readFile(e.target.files[0]));
+const drop = $('#drop');
+for (const ev of ['dragenter','dragover']) drop.addEventListener(ev,(e)=>{e.preventDefault();drop.classList.add('over');});
+for (const ev of ['dragleave','drop']) drop.addEventListener(ev,(e)=>{e.preventDefault();drop.classList.remove('over');});
+drop.addEventListener('drop',(e)=>{const f=e.dataTransfer.files[0]; if(f) readFile(f);});
+
+$('#sample').addEventListener('click', async ()=>{
+  status.textContent = 'Loading sample…';
+  const text = await (await fetch('./sample.csv')).text();
+  const wb = XLSX.read(text, { type:'string', cellDates:true });
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header:1, raw:true, defval:'' });
+  handleRows(rows, 'sample.csv (fictional company)');
+});
+
+copyBtn.addEventListener('click', async ()=>{
+  try{ await navigator.clipboard.writeText(lastText); status.textContent='Copied.'; }catch{ status.textContent='Copy failed; select the text manually.'; }
+});
+</script>
+</body>
+</html>
